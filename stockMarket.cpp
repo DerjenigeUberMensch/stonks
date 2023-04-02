@@ -2,6 +2,7 @@
 #include "math.cpp"
 #include "stringManipulation.cpp"
 #include <chrono>
+#include <cmath> // floor division
 #include <iostream>
 #include <string>
 #include <thread>
@@ -14,11 +15,14 @@ public:
   float volatility;
   const int initial_price = rng(1, 1500);
   int stability; // -1 unstable 0 regular_stock 1 semi-stable 2 stable
-  /* Stability: Stock will never drop below initial_price +- x (where x is some range)
-  Note we generally dont want rangeless stocks as c++ likes to just drop the stocks to 0 and not climb back up
+  /* Stability: Stock will never drop below initial_price +- x (where x is some
+  range) Note we generally dont want rangeless stocks as c++ likes to just drop
+  the stocks to 0 and not climb back up
   */
-  const int min_price = ;
-  const int max_price = ;
+  // 1500
+  // 50
+  const float min_price = initial_price * rng(1, 10) * .01;
+  const float max_price = initial_price * rng(1, 10) * 10;
   float current_price = initial_price;
 
 protected:
@@ -26,31 +30,30 @@ protected:
   std::string bitBurnerSym = "w0r1d_d43m0n";
   std::string stockName = "BitBurner";
 };
-float stock_new_price(float current_price, float volatility) {
+void stock_new_price(Stock &stock) {
   int rise_or_dip = rng(-1, 1);
-  current_price = current_price + ((current_price * volatility * rise_or_dip) +
-                                   (current_price * volatility * .05));
-  if (current_price < 0.1) {
-    return current_price + (current_price * volatility * 1.5);
-  } else {
-    return current_price;
-  }
-  return current_price;
+  stock.current_price = stock.current_price + ((stock.current_price * stock.volatility * rise_or_dip) +
+  (stock.current_price * stock.volatility * .05));
 }
-void new_stock_price(Stock stock) {
+void new_stock_price(Stock &stock, const int numOfIterations = 1) {
   std::string file_name = stock.symbol + ".txt";
   std::ifstream file(file_name);
   if (is_empty(file)) {
   } else {
     std::vector<std::string> current_price_temp = readFile(file_name);
-    stock.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
+    stock.current_price =
+        std::stof(current_price_temp[current_price_temp.size() - 1]);
   }
   file.close();
 
-  for (int i = 0; i < 100; ++i) {
-    stock.current_price =
-    stock_new_price(stock.current_price, stock.volatility);
+  for (int i = 0; i < numOfIterations; ++i) {
+    stock_new_price(stock);
     writeToFile(file_name, std::to_string(stock.current_price));
+    if(stock.current_price < stock.min_price){
+      stock.current_price = stock.min_price;
+    }else if(stock.current_price >= stock.max_price){
+      stock.current_price = stock.max_price;
+    }
   }
 }
 int main() {
@@ -143,13 +146,27 @@ int main() {
   Ethanol.volatility = .20;
   Ethanol.symbol = "ETHN";
   Ethanol.stock_name = "Ethanol";
-  new_stock_price(Ethanol);
-  /*
+  new_stock_price(Ethanol, 7500);
+  return 0;
+}
+// std::cout << << "\n";
+// Know issues: using larger numbers leads to price dropping to 0
+/*
+  std::stoi    // string to int
+  std::stol    // string to long
+  std::stoll   // string to long long
+  std::stof    // string to float
+  std::stod    // string to double
+  std::stold   // string to long double
+*/
+
+/*
   std::ifstream file("nums.txt");
   if (is_empty(file)) {
   } else {
     std::vector<std::string> current_price_temp = readFile("nums.txt");
-    Ethanol.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
+    Ethanol.current_price =
+  std::stof(current_price_temp[current_price_temp.size() - 1]);
     // std::cout << std::to_string(Ethanol.current_price);
   }
   file.close();
@@ -161,15 +178,4 @@ int main() {
     // std::cout << Ethanol.current_price << std::endl;
     writeToFile("nums.txt", std::to_string(Ethanol.current_price));
   }
-  */ 
-  return 0;
-}
-// Know issues: using larger numbers leads to price dropping to 0
-/*
-  std::stoi    // string to int
-  std::stol    // string to long
-  std::stoll   // string to long long
-  std::stof    // string to float
-  std::stod    // string to double
-  std::stold   // string to long double
-*/
+  */
