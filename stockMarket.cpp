@@ -19,9 +19,7 @@ public:
   range) Note we generally dont want rangeless stocks as c++ likes to just drop
   the stocks to 0 and not climb back up
   */
-  // 1500
-  // 50
-  const float min_price = initial_price * rng(1, 10) * .01;
+  const float min_price = (initial_price * rng(1, 10) * .01) + rng(1, 3); //second rng is so we dont get small nums
   const float max_price = initial_price * rng(1, 10) * 10;
   float current_price = initial_price;
 
@@ -30,10 +28,17 @@ protected:
   std::string bitBurnerSym = "w0r1d_d43m0n";
   std::string stockName = "BitBurner";
 };
-void stock_new_price(Stock &stock) {
+
+void update_stock_price(Stock &stock){
+  //generate new stock price
   int rise_or_dip = rng(-1, 1);
-  stock.current_price = stock.current_price + ((stock.current_price * stock.volatility * rise_or_dip) +
-  (stock.current_price * stock.volatility * .05));
+  if(stock.current_price < stock.min_price){
+    stock.current_price = stock.current_price + ((stock.current_price * stock.volatility * rise_or_dip) +(stock.current_price * stock.volatility * .25));
+  }else if(stock.current_price >= stock.max_price){
+    stock.current_price = stock.current_price - (stock.current_price * stock.volatility * rise_or_dip *rise_or_dip);
+  }else{
+    stock.current_price = stock.current_price + (stock.current_price * stock.volatility * rise_or_dip);
+  }
 }
 void new_stock_price(Stock &stock, const int numOfIterations = 1) {
   std::string file_name = stock.symbol + ".txt";
@@ -41,112 +46,153 @@ void new_stock_price(Stock &stock, const int numOfIterations = 1) {
   if (is_empty(file)) {
   } else {
     std::vector<std::string> current_price_temp = readFile(file_name);
-    stock.current_price =
-        std::stof(current_price_temp[current_price_temp.size() - 1]);
+    stock.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
   }
   file.close();
-
-  for (int i = 0; i < numOfIterations; ++i) {
-    stock_new_price(stock);
+  if(numOfIterations == 1){
+    update_stock_price(stock);
+    //log stock price
     writeToFile(file_name, std::to_string(stock.current_price));
-    if(stock.current_price < stock.min_price){
-      stock.current_price = stock.min_price;
-    }else if(stock.current_price >= stock.max_price){
-      stock.current_price = stock.max_price;
+  }else{
+    for (int i = 0; i < numOfIterations; ++i) {
+      update_stock_price(stock);
+      writeToFile(file_name, std::to_string(stock.current_price));
     }
   }
+
 }
 int main() {
   Stock NVIDIA;
   NVIDIA.volatility = 0.07;
   NVIDIA.symbol = "NVDA";
   NVIDIA.stock_name = "NVIDIA";
+  
 
   Stock Microsoft;
   Microsoft.volatility = .03;
   Microsoft.symbol = "MCSFT";
   Microsoft.stock_name = "Microsoft";
+  
 
   Stock Apple;
   Apple.volatility = .027;
   Apple.symbol = "APP";
   Apple.stock_name = "Apple";
+  
 
   Stock Oracle;
   Oracle.volatility = 0.06;
   Oracle.symbol = "ORC";
   Oracle.stock_name = "Oracle";
+  
 
   Stock Tesla;
   Tesla.volatility = .16;
   Tesla.symbol = "TSL";
   Tesla.stock_name = "Tesla";
+  
 
-  Stock Ford_Motor_Company;
-  Ford_Motor_Company.volatility = .039;
-  Ford_Motor_Company.symbol = "FORD";
-  Ford_Motor_Company.stock_name = "Ford.";
+  Stock Ford;
+  Ford.volatility = .039;
+  Ford.symbol = "FORD";
+  Ford.stock_name = "Ford";
+  
 
-  Stock Intel_Corporation;
-  Intel_Corporation.volatility = .017;
-  Intel_Corporation.symbol = "INT";
-  Intel_Corporation.stock_name = "Intel.";
+  Stock Intel;
+  Intel.volatility = .017;
+  Intel.symbol = "INT";
+  Intel.stock_name = "Intel";
+  
 
   Stock Google;
   Google.volatility = .05;
   Google.symbol = "ABC";
-  Google.stock_name = "Google.";
+  Google.stock_name = "Google";
+  
 
-  Stock Fazbear_entertainment;
-  Fazbear_entertainment.volatility = .03;
-  Fazbear_entertainment.symbol = "FAZ";
-  Fazbear_entertainment.stock_name = "Freddy Fazbears.";
+  Stock Fazbear;
+  Fazbear.volatility = .03;
+  Fazbear.symbol = "FAZ";
+  Fazbear.stock_name = "Freddy Fazbears";
+  
 
   Stock Coca_cola;
   Coca_cola.volatility = .04;
   Coca_cola.symbol = "COLA";
-  Coca_cola.stock_name = "Coca Cola Co.";
+  Coca_cola.stock_name = "Coca Cola Co";
+  
 
   Stock Pepsi_co;
   Pepsi_co.volatility = .04;
   Pepsi_co.symbol = "PEP";
-  Pepsi_co.stock_name = "Pepsi Co.";
+  Pepsi_co.stock_name = "Pepsi Co";
+  
 
   Stock S_and_P;
   S_and_P.volatility = .05;
   S_and_P.symbol = "S&P";
-  S_and_P.stock_name = "S&P500.";
+  S_and_P.stock_name = "S&P500";
+  
 
   Stock Dow_jones;
   Dow_jones.volatility = .07;
   Dow_jones.symbol = "DWJ";
-  Dow_jones.stock_name = "Dow_Jones.";
+  Dow_jones.stock_name = "Dow Jones";
+  
 
   Stock Oil;
   Oil.volatility = .10;
   Oil.symbol = "OIL";
   Oil.stock_name = "Oil";
+  
 
   Stock Gold;
   Gold.volatility = .15;
   Gold.symbol = "GOLD";
   Gold.stock_name = "Gold";
+  
 
   Stock Uranium;
   Uranium.volatility = .17;
   Uranium.symbol = "URM";
   Uranium.stock_name = "Uranium";
-
+  
+  
   Stock Natural_Gas;
   Natural_Gas.volatility = .15;
   Natural_Gas.symbol = "GAS";
-  Natural_Gas.stock_name = "Natural_Gas";
+  Natural_Gas.stock_name = "Natural Gas";
+  
 
   Stock Ethanol;
   Ethanol.volatility = .20;
   Ethanol.symbol = "ETHN";
   Ethanol.stock_name = "Ethanol";
-  new_stock_price(Ethanol, 7500);
+  
+  new_stock_price(Ethanol);
+
+  int some_varaible;
+  std::cout << "StockMarket" << "\n";
+  std::cout << NVIDIA.stock_name       << ": " << NVIDIA.current_price   << "\n";
+  std::cout << Google.stock_name       << ": " << Google.current_price   << "\n";
+  std::cout << Oracle.stock_name       << ": " << Oracle.current_price   << "\n";
+  std::cout << Intel.stock_name        << ": " << Intel.current_price    << "\n";
+  std::cout << Microsoft.stock_name    << ": " << Microsoft.current_price<< "\n";
+  std::cout << Tesla.stock_name        << ": " << Tesla.current_price    << "\n";
+  std::cout << Ford.stock_name         << ": " << Ford.current_price     << "\n";
+  std::cout << Fazbear.stock_name      << ": " << Fazbear.current_price  << "\n";
+  std::cout << Coca_cola.stock_name    << ": " << Coca_cola.current_price<< "\n";
+  std::cout << Pepsi_co.stock_name     << ": " << Pepsi_co.current_price << "\n";
+  std::cout << Dow_jones.stock_name    << ": " << Dow_jones.current_price<< "\n";
+  std::cout << S_and_P.stock_name      << ": " << S_and_P.current_price  << "\n";
+  std::cout << Natural_Gas.stock_name  << ": " << Natural_Gas.current_price<< "\n";
+  std::cout << Uranium.stock_name      << ": " << Uranium.current_price  << "\n";
+  std::cout << Oil.stock_name          << ": " << Oil.current_price      << "\n";  
+  std::cout << Ethanol.stock_name      << ": " << Ethanol.current_price  << "\n";
+
+
+  std::cin >> some_varaible;
+  //writeToFile("stocks.txt",)
   return 0;
 }
 // std::cout << << "\n";
