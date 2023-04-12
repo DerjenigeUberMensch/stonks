@@ -1,3 +1,2 @@
 # stonks
-
-Very basic Stock Market thing
+## Just run the .exe file if you dont want to modify the code
