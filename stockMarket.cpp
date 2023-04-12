@@ -191,7 +191,7 @@ int main() {
     get_logged_stock_prices(stocks[i]);
   }
   std::cout << "StockMarket" << "\n";
-  std::cout << "type 'exit' to exit.";
+  std::cout << "type 'exit' to exit." << "\n";
   while(true){
     for(int i = 0;i < stocks.size();++i){
       new_stock_price(stocks[i]);
