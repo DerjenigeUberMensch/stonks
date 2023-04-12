@@ -57,8 +57,8 @@ void get_logged_stock_prices(Stock &stock){
       stock.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
     }
     catch(...){/**/}; // we dont want to do anything is user tampers with the files cause it will just default to stock.current_price
-    file.close();
   }
+  file.close();
 }
 void new_stock_price(Stock &stock, const int numOfIterations = 1) {
   for(int i = 0; i < numOfIterations; ++i){
