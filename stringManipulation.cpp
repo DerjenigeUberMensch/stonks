@@ -17,8 +17,7 @@ void print(std::string string, int sleep_time = 50) {
 std::string removeSpecialCharacters(std::string line) {
   std::string temp = "";
   for (int i = 0; i < line.size(); ++i) {
-    if ((line[i] >= 'a' && line[i] <= 'z') ||
-        (line[i] >= 'A' && line[i] <= 'Z')) {
+    if (isalpha(line[i])) {
       temp = temp + line[i];
     } else {
       temp += " ";
