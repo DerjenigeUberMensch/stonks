@@ -7,207 +7,231 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <stdlib.h> //clear screen
 
-class Stock {
-public:    
-  std::string symbol;
-  std::string stock_name;
-  float volatility;
-  const int initial_price = rng(1, 1500);
-  int stability; // -1 unstable 0 regular_stock 1 semi-stable 2 stable
-  /* Stability: Stock will never drop below initial_price +- x (where x is some
-  range) Note we generally dont want rangeless stocks as c++ likes to just drop
-  the stocks to 0 and not climb back up
-  */
-  const float min_price = (initial_price * rng(1, 10) * .01) + rng(1, 3); //second rng is so we dont get small nums
-  const float max_price = initial_price * rng(1, 10) * 10;
-  float current_price = initial_price;
-
-protected:
+class w0r1d_d43m0n {
+  private:
   int bitBurnerVol = 2;
   std::string bitBurnerSym = "w0r1d_d43m0n";
   std::string stockName = "BitBurner";
 };
+class Stock {
+public:
+  //std::vector<float> prices; //<<Feature Not implemented Yet>>
+  std::string SYMBOL; //not const but essential a const value
+  std::string stock_name;
+  float volatility;
+  const int INITIAL_PRICE = rng(1, 1500);
+  int stability = rng(-1, 2); // -1 unstable 0 regular_stock 1 semi-stable 2 stable
+  /* Stability: Stock will never drop below initial_price +- x (where x is some
+  range) Note we generally dont want rangeless stocks as c++ likes to just drop
+  the stocks to 0 and not climb back up
+  */
+  const float MIN_PRICE = (INITIAL_PRICE * rng(1, 10) * .01) + rng(1, 3); //second rng is so we dont get small nums
+  const float MAX_PRICE = INITIAL_PRICE * rng(1, 10) * 10;
+  float current_price = INITIAL_PRICE;
+  //void log_old_price(){prices.push_back(current_price);}; //<<Feature Not implemented Yet>>
+};
+
 void update_stock_price(Stock &stock){
   //generate new stock price
   int rise_or_dip = rng(-1, 1);
-  if(stock.current_price < stock.min_price){
+  if(stock.current_price < stock.MIN_PRICE){
     stock.current_price = stock.current_price + ((stock.current_price * stock.volatility * rise_or_dip) +(stock.current_price * stock.volatility * .25));
-  }else if(stock.current_price >= stock.max_price){
-    stock.current_price = stock.current_price - (stock.current_price * stock.volatility * rise_or_dip *rise_or_dip);
+  }else if(stock.current_price >= stock.MAX_PRICE){
+    stock.current_price = stock.current_price - (stock.current_price * stock.volatility * rise_or_dip *rise_or_dip)+ (stock.current_price * stock.volatility * .1);
   }else{
     stock.current_price = stock.current_price + (stock.current_price * stock.volatility * rise_or_dip);
   }
+  //stock.log_old_price(); //<<Feature Not implemented Yet>>
+}
+void get_logged_stock_prices(Stock &stock){
+  std::string file_name = stock.SYMBOL + ".txt";
+  std::ifstream file(file_name);
+  if (!is_empty(file)) {
+    std::vector<std::string> current_price_temp = readFile(file_name);
+    try{
+      for(int i = 0;i < current_price_temp.size();++i){
+        std::stof(current_price_temp[i]);
+      }
+      stock.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
+    }
+    catch(...){/**/}; // we dont want to do anything is user tampers with the files cause it will just default to stock.current_price
+    file.close();
+  }
 }
 void new_stock_price(Stock &stock, const int numOfIterations = 1) {
-  std::string file_name = stock.symbol + ".txt";
-  std::ifstream file(file_name);
-  if (is_empty(file)) {
-  } else {
-    std::vector<std::string> current_price_temp = readFile(file_name);
-    stock.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
-  }
-  file.close();
-  if(numOfIterations == 1){
+  for(int i = 0; i < numOfIterations; ++i){
     update_stock_price(stock);
-    //log stock price
-    writeToFile(file_name, std::to_string(stock.current_price));
-  }else{
-    for (int i = 0; i < numOfIterations; ++i) {
-      update_stock_price(stock);
-      writeToFile(file_name, std::to_string(stock.current_price));
-    }
   }
-
 }
-std::string display_stock_price(const Stock stock, int cout_spaces = 10){
-  int stock_length = stock.stock_name.length();
+std::string display_stock_price(const Stock &STOCK, int cout_spaces = 10){
+  int stock_length = STOCK.stock_name.length();
   cout_spaces = cout_spaces - stock_length;
   if(cout_spaces <= 0 ){
     return " ";
   }
   std::string spaces(cout_spaces, ' ');
-  std::string display = stock.stock_name+':'+spaces+std::to_string(stock.current_price);
+  std::string display = STOCK.stock_name+':'+spaces+std::to_string(STOCK.current_price);
   return display;
 }
+
 int main() {
   std::vector<Stock> stocks;
   Stock NVIDIA;
   NVIDIA.volatility = 0.07;
-  NVIDIA.symbol = "NVDA";
+  NVIDIA.SYMBOL = "NVDA";
   NVIDIA.stock_name = "NVIDIA";
   stocks.push_back(NVIDIA);
 
   Stock Microsoft;
   Microsoft.volatility = .03;
-  Microsoft.symbol = "MCSFT";
+  Microsoft.SYMBOL = "MCSFT";
   Microsoft.stock_name = "Microsoft";
   stocks.push_back(Microsoft);
 
   Stock Apple;
   Apple.volatility = .027;
-  Apple.symbol = "APP";
+  Apple.SYMBOL = "APP";
   Apple.stock_name = "Apple";
   stocks.push_back(Apple);
 
   Stock Oracle;
   Oracle.volatility = 0.06;
-  Oracle.symbol = "ORC";
+  Oracle.SYMBOL = "ORC";
   Oracle.stock_name = "Oracle";
   stocks.push_back(Oracle);
 
   Stock Tesla;
   Tesla.volatility = .16;
-  Tesla.symbol = "TSL";
+  Tesla.SYMBOL = "TSL";
   Tesla.stock_name = "Tesla";
   stocks.push_back(Tesla);
 
   Stock Ford;
   Ford.volatility = .039;
-  Ford.symbol = "FORD";
+  Ford.SYMBOL = "FORD";
   Ford.stock_name = "Ford";
   stocks.push_back(Ford);
 
   Stock Intel;
   Intel.volatility = .017;
-  Intel.symbol = "INT";
+  Intel.SYMBOL = "INT";
   Intel.stock_name = "Intel";
   stocks.push_back(Intel);
 
   Stock Google;
   Google.volatility = .05;
-  Google.symbol = "ABC";
+  Google.SYMBOL = "ABC";
   Google.stock_name = "Google";
   stocks.push_back(Google);
 
   Stock Fazbear;
   Fazbear.volatility = .03;
-  Fazbear.symbol = "FAZ";
+  Fazbear.SYMBOL = "FAZ";
   Fazbear.stock_name = "Freddy Fazbears";
   stocks.push_back(Fazbear);
 
   Stock Coca_cola;
   Coca_cola.volatility = .04;
-  Coca_cola.symbol = "COLA";
+  Coca_cola.SYMBOL = "COLA";
   Coca_cola.stock_name = "Coca Cola Co";
   stocks.push_back(Coca_cola);
 
   Stock Pepsi_co;
   Pepsi_co.volatility = .04;
-  Pepsi_co.symbol = "PEP";
+  Pepsi_co.SYMBOL = "PEP";
   Pepsi_co.stock_name = "Pepsi Co";
   stocks.push_back(Pepsi_co);
 
   Stock S_and_P;
   S_and_P.volatility = .05;
-  S_and_P.symbol = "S&P";
+  S_and_P.SYMBOL = "S&P";
   S_and_P.stock_name = "S&P500";
   stocks.push_back(S_and_P);
 
   Stock Dow_jones;
   Dow_jones.volatility = .07;
-  Dow_jones.symbol = "DWJ";
+  Dow_jones.SYMBOL = "DWJ";
   Dow_jones.stock_name = "Dow Jones";
   stocks.push_back(Dow_jones);
 
   Stock Oil;
   Oil.volatility = .10;
-  Oil.symbol = "OIL";
+  Oil.SYMBOL = "OIL";
   Oil.stock_name = "Oil";
   stocks.push_back(Oil);
 
   Stock Gold;
   Gold.volatility = .15;
-  Gold.symbol = "GOLD";
+  Gold.SYMBOL = "GOLD";
   Gold.stock_name = "Gold";
   stocks.push_back(Gold);
 
   Stock Uranium;
   Uranium.volatility = .17;
-  Uranium.symbol = "URM";
+  Uranium.SYMBOL = "URM";
   Uranium.stock_name = "Uranium";
   stocks.push_back(Uranium);
   
   Stock Nat_gas; // Natural Gas
   Nat_gas.volatility = .15;
-  Nat_gas.symbol = "GAS";
+  Nat_gas.SYMBOL = "GAS";
   Nat_gas.stock_name = "Natural Gas";
   stocks.push_back(Nat_gas);
 
   Stock Ethanol;
   Ethanol.volatility = .20;
-  Ethanol.symbol = "ETHN";
+  Ethanol.SYMBOL = "ETHN";
   Ethanol.stock_name = "Ethanol";
   stocks.push_back(Ethanol);
 
-  std::cout << "StockMarket" << "\n";
+
   for(int i = 0;i < stocks.size();++i){
-    std::cout << display_stock_price(stocks[i], 20) << "\n";
+    get_logged_stock_prices(stocks[i]);
   }
-  
-  /*
-  std::cout << NVIDIA.stock_name       << ": " << NVIDIA.current_price   << "\n";
-  std::cout << Google.stock_name       << ": " << Google.current_price   << "\n";
-  std::cout << Oracle.stock_name       << ": " << Oracle.current_price   << "\n";
-  std::cout << Intel.stock_name        << ": " << Intel.current_price    << "\n";
-  std::cout << Microsoft.stock_name    << ": " << Microsoft.current_price<< "\n";
-  std::cout << Tesla.stock_name        << ": " << Tesla.current_price    << "\n";
-  std::cout << Ford.stock_name         << ": " << Ford.current_price     << "\n";
-  std::cout << Fazbear.stock_name      << ": " << Fazbear.current_price  << "\n";
-  std::cout << Coca_cola.stock_name    << ": " << Coca_cola.current_price<< "\n";
-  std::cout << Pepsi_co.stock_name     << ": " << Pepsi_co.current_price << "\n";
-  std::cout << Dow_jones.stock_name    << ": " << Dow_jones.current_price<< "\n";
-  std::cout << S_and_P.stock_name      << ": " << S_and_P.current_price  << "\n";
-  std::cout << Nat_gas.stock_name      << ": " << Nat_gas.current_price  << "\n";
-  std::cout << Uranium.stock_name      << ": " << Uranium.current_price  << "\n";
-  std::cout << Oil.stock_name          << ": " << Oil.current_price      << "\n";  
-  std::cout << Ethanol.stock_name      << ": " << Ethanol.current_price  << "\n";
-  */
-  //writeToFile("stocks.txt",)
+  std::cout << "StockMarket" << "\n";
+  std::cout << "type 'exit' to exit.";
+  while(true){
+    for(int i = 0;i < stocks.size();++i){
+      new_stock_price(stocks[i]);
+      const int SPACES_AFTER_STOCK = 20;
+      const std::string DISPLAY_STOCK_PRICE = display_stock_price(stocks[i], SPACES_AFTER_STOCK);
+      std::cout << DISPLAY_STOCK_PRICE; // display stock and price
+      const int ORDER_COUT_SPACES = 20 - (std::to_string(stocks[i].current_price).length());
+      std::string spaces(ORDER_COUT_SPACES, ' ');
+      std::cout << spaces << "Order: " << stocks[i].SYMBOL << "\n"; //display order
+    }
+    std::string user_symbol;
+    std::cout << "Would you like to purchase any stocks if so input the symbol else enter num of iterations to skip: ";
+    std::cin >> user_symbol;
+    if(!(user_symbol.empty()) && isdigit(user_symbol[0])){
+      //implement somthing to detect non digit input
+      std::stoi(user_symbol);
+
+      for(int i = 0; i < std::stoi(user_symbol);++i){
+        for(int x = 0;x < stocks.size();++x){
+          new_stock_price(stocks[x]);
+        }
+      }
+    }else if(lower(user_symbol) == "exit"){
+      for(int i = 0; i < stocks.size();++i){
+        writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
+      }
+      break;
+    }else{
+      for(int i = 0;i < stocks.size();++i){
+        if(stocks[i].SYMBOL == user_symbol){
+          float purchaseAmount;
+          std::cout << "Stock Found!\nHow many would you like to purchase?: ";
+          std::cin >> purchaseAmount;
+        }
+      }
+    }
+    system("cls");
+  }
   return 0;
 }
-// std::cout << << "\n";
-// Know issues: using larger numbers leads to price dropping to 0
 /*
   std::stoi    // string to int
   std::stol    // string to long
@@ -216,23 +240,3 @@ int main() {
   std::stod    // string to double
   std::stold   // string to long double
 */
-
-/*
-  std::ifstream file("nums.txt");
-  if (is_empty(file)) {
-  } else {
-    std::vector<std::string> current_price_temp = readFile("nums.txt");
-    Ethanol.current_price =
-  std::stof(current_price_temp[current_price_temp.size() - 1]);
-    // std::cout << std::to_string(Ethanol.current_price);
-  }
-  file.close();
-  // Ethanol.current_price = current_price_temp.size() - 1;
-
-  for (int i = 0; i < 100; ++i) {
-    Ethanol.current_price =
-        stock_new_price(Ethanol.current_price, Ethanol.volatility);
-    // std::cout << Ethanol.current_price << std::endl;
-    writeToFile("nums.txt", std::to_string(Ethanol.current_price));
-  }
-  */
