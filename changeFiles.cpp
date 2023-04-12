@@ -42,3 +42,10 @@ void newFile(std::string fileName){
 bool is_empty(std::ifstream& pFile){
     return pFile.peek() == std::ifstream::traits_type::eof();
 }
+int get_size(std::string file_name){
+    std::ifstream inFile(file_name);
+    int count = std::count(std::istreambuf_iterator<char>(inFile),
+                std::istreambuf_iterator<char>(), '\n');
+    inFile.close();
+    return count;
+}
