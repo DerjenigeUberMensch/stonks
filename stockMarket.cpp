@@ -75,7 +75,15 @@ std::string display_stock_price(const Stock &STOCK, int cout_spaces = 10){
   std::string display = STOCK.stock_name+':'+spaces+std::to_string(STOCK.current_price);
   return display;
 }
-
+void display_stocks_info(const std::vector<Stock> &stocks, const int SPACES_AFTER_STOCK = 20){
+  for(int i = 0;i < stocks.size();i++){
+    const std::string DISPLAY_STOCK_PRICE = display_stock_price(stocks[i], SPACES_AFTER_STOCK);
+    std::cout << DISPLAY_STOCK_PRICE; // display stock and price
+    const int ORDER_COUT_SPACES = 20 - (std::to_string(stocks[i].current_price).length());
+    std::string spaces(ORDER_COUT_SPACES, ' ');
+    std::cout << spaces << "Order: " << stocks[i].SYMBOL << '\n'; //display order
+  }
+}
 int main() {
   std::vector<Stock> stocks;
   Stock NVIDIA;
@@ -190,29 +198,33 @@ int main() {
   for(int i = 0;i < stocks.size();++i){
     get_logged_stock_prices(stocks[i]);
   }
+
   std::cout << "StockMarket" << "\n";
   std::cout << "type 'exit' to exit." << "\n";
   while(true){
-    for(int i = 0;i < stocks.size();++i){
-      new_stock_price(stocks[i]);
-      const int SPACES_AFTER_STOCK = 20;
-      const std::string DISPLAY_STOCK_PRICE = display_stock_price(stocks[i], SPACES_AFTER_STOCK);
-      std::cout << DISPLAY_STOCK_PRICE; // display stock and price
-      const int ORDER_COUT_SPACES = 20 - (std::to_string(stocks[i].current_price).length());
-      std::string spaces(ORDER_COUT_SPACES, ' ');
-      std::cout << spaces << "Order: " << stocks[i].SYMBOL << "\n"; //display order
-    }
+    display_stocks_info(stocks);
+
     std::string user_symbol;
     std::cout << "Would you like to purchase any stocks if so input the symbol else enter num of iterations to skip: ";
     std::cin >> user_symbol;
-    if(!(user_symbol.empty()) && isdigit(user_symbol[0])){
-      //implement somthing to detect non digit input
-      std::stoi(user_symbol);
 
-      for(int i = 0; i < std::stoi(user_symbol);++i){
-        for(int x = 0;x < stocks.size();++x){
+
+    /*  if(something_to_detect_enter){
           new_stock_price(stocks[x]);
         }
+    */
+    if(!(user_symbol.empty())){
+      //implement somthing to detect non digit input
+      try{
+        std::stoi(user_symbol);
+        for(int i = 0; i < std::stoi(user_symbol);++i){
+          for(int x = 0;x < stocks.size();++x){
+            new_stock_price(stocks[x]);
+          }
+        }
+      }
+      catch(...){
+        continue;
       }
     }else if(lower(user_symbol) == "exit"){
       for(int i = 0; i < stocks.size();++i){
