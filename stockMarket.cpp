@@ -2,7 +2,6 @@
 #include "math.cpp"
 #include "stringManipulation.cpp"
 #include <chrono>
-#include <cmath> // floor division
 #include <iostream>
 #include <string>
 #include <thread>
@@ -37,11 +36,11 @@ void update_stock_price(Stock &stock){
   //generate new stock price
   int rise_or_dip = rng(-1, 1);
   if(stock.current_price < stock.MIN_PRICE){
-    stock.current_price = stock.current_price + ((stock.current_price * stock.volatility * rise_or_dip) +(stock.current_price * stock.volatility * .25));
+    stock.current_price += ((stock.current_price * stock.volatility * rise_or_dip) +(stock.current_price * stock.volatility * .25));
   }else if(stock.current_price >= stock.MAX_PRICE){
     stock.current_price = stock.current_price - (stock.current_price * stock.volatility * rise_or_dip *rise_or_dip)+ (stock.current_price * stock.volatility * .1);
   }else{
-    stock.current_price = stock.current_price + (stock.current_price * stock.volatility * rise_or_dip);
+    stock.current_price += (stock.current_price * stock.volatility * rise_or_dip);
   }
   //stock.log_old_price(); //<<Feature Not implemented Yet>>
 }
@@ -59,11 +58,6 @@ void get_logged_stock_prices(Stock &stock){
     catch(...){/**/}; // we dont want to do anything is user tampers with the files cause it will just default to stock.current_price
   }
   file.close();
-}
-void new_stock_price(Stock &stock, const int numOfIterations = 1) {
-  for(int i = 0; i < numOfIterations; ++i){
-    update_stock_price(stock);
-  }
 }
 std::string display_stock_price(const Stock &STOCK, int cout_spaces = 10){
   int stock_length = STOCK.stock_name.length();
@@ -210,27 +204,29 @@ int main() {
 
 
     /*  if(something_to_detect_enter){
-          new_stock_price(stocks[x]);
+          for(int x = 0;x < stocks.size();++x){
+            update_stock_price(stocks[x]);
+          }
         }
     */
-    if(!(user_symbol.empty())){
+    if(lower(user_symbol) == "exit"){
+      for(int i = 0; i < stocks.size();++i){
+        writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
+      }
+      break;
+    }else if(!(user_symbol.empty())){
       //implement somthing to detect non digit input
       try{
         std::stoi(user_symbol);
         for(int i = 0; i < std::stoi(user_symbol);++i){
           for(int x = 0;x < stocks.size();++x){
-            new_stock_price(stocks[x]);
+            update_stock_price(stocks[x]);
           }
         }
       }
       catch(...){
         continue;
       }
-    }else if(lower(user_symbol) == "exit"){
-      for(int i = 0; i < stocks.size();++i){
-        writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
-      }
-      break;
     }else{
       for(int i = 0;i < stocks.size();++i){
         if(stocks[i].SYMBOL == user_symbol){
