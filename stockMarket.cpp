@@ -7,7 +7,7 @@
 #include <thread>
 #include <vector>
 #include <stdlib.h> //clear screen
-
+#include <stdexcept> //exceptions
 class w0r1d_d43m0n {
   private:
   int bitBurnerVol = 2;
@@ -30,6 +30,13 @@ public:
   const float MAX_PRICE = INITIAL_PRICE * rng(1, 10) * 10;
   float current_price = INITIAL_PRICE;
   //void log_old_price(){prices.push_back(current_price);}; //<<Feature Not implemented Yet>>
+};
+class Player {
+  public:
+  const int initial_balance = rng(5000,1000000);
+  float current_balance = initial_balance;
+  std::vector<std::string> stocks;
+  std::vector<std::string> owned_stocks;
 };
 
 void update_stock_price(Stock &stock){
@@ -79,6 +86,7 @@ void display_stocks_info(const std::vector<Stock> &stocks, const int SPACES_AFTE
   }
 }
 int main() {
+  Player player;
   std::vector<Stock> stocks;
   Stock NVIDIA;
   NVIDIA.volatility = 0.07;
@@ -193,9 +201,9 @@ int main() {
     get_logged_stock_prices(stocks[i]);
   }
 
-  std::cout << "StockMarket" << "\n";
-  std::cout << "type 'exit' to exit." << "\n";
   while(true){
+    std::cout << "StockMarket" << "\n";
+    std::cout << "type 'exit' to exit." << "\n";
     display_stocks_info(stocks);
 
     std::string user_symbol;
@@ -214,30 +222,37 @@ int main() {
         writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
       }
       break;
-    }else if(!(user_symbol.empty())){
+    }else if(!user_symbol.empty() && isInteger(user_symbol)){
       //implement somthing to detect non digit input
-      try{
-        std::stoi(user_symbol);
-        for(int i = 0; i < std::stoi(user_symbol);++i){
-          for(int x = 0;x < stocks.size();++x){
-            update_stock_price(stocks[x]);
+      for(int i = 0; i < std::stoi(user_symbol);++i){
+        for(int x = 0;x < stocks.size();++x){
+          update_stock_price(stocks[x]);
+        }
+      }
+    }else if(!user_symbol.empty()){
+      for(int i = 0;i < stocks.size();++i){
+        if(stocks[i].SYMBOL == user_symbol){
+          std::cout << "Stock Found!\n";
+          while(true){
+              try{
+                std::string purchaseAmount;
+                std::cout << "How many would you like to purchase?: ";
+                std::cin >> purchaseAmount;
+                if(isNumber(purchaseAmount)){
+                  player.current_balance -= std::stof(purchaseAmount);
+
+                  break;
+                  }
+                else{throw std::invalid_argument( "That is not a number try again." );}
+              }
+              catch(const std::invalid_argument& e){std::cout << "That is not a number try again.\n";}
+              }
           }
         }
       }
-      catch(...){
-        continue;
-      }
-    }else{
-      for(int i = 0;i < stocks.size();++i){
-        if(stocks[i].SYMBOL == user_symbol){
-          float purchaseAmount;
-          std::cout << "Stock Found!\nHow many would you like to purchase?: ";
-          std::cin >> purchaseAmount;
-        }
-      }
+      system("cls");
     }
-    system("cls");
-  }
+  
   return 0;
 }
 /*
