@@ -6,8 +6,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-
-void print(std::string string, int sleep_time = 50) {
+template<typename Type>
+void print(Type string, int sleep_time = 50) {
   for (int i = 0; i < string.size(); ++i) {
     std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
     std::cout << string[i];
@@ -55,4 +55,10 @@ std::string lower(std::string string, bool upper = false) {
     std::transform(string.begin(), string.end(), string.begin(), ::toupper);
   }
   return string;
+}
+
+template<typename Type>
+bool isInVector(Type vector, Type object){
+  if(std::find(vector.begin, vector.end, object) != vector.end())  {return true;}
+  return false;
 }
