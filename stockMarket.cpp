@@ -35,7 +35,6 @@ class Player {
   public:
   const int initial_balance = rng(5000,1000000);
   float current_balance = initial_balance;
-  std::vector<std::string> stocks;
   std::vector<std::string> owned_stocks;
 };
 
@@ -200,15 +199,16 @@ int main() {
   for(int i = 0;i < stocks.size();++i){
     get_logged_stock_prices(stocks[i]);
   }
-
+  
   while(true){
-    std::cout << "StockMarket" << "\n";
-    std::cout << "type 'exit' to exit." << "\n";
+    std::cout << "StockMarket" << '\n';
+    std::cout << "type 'exit' to exit." << '\n';
+    std::cout << "Current Balance: $" << player.current_balance << "\n\n";
     display_stocks_info(stocks);
 
     std::string user_symbol;
     std::cout << "Would you like to purchase any stocks if so input the symbol else enter num of iterations to skip: ";
-    std::cin >> user_symbol;
+    getline(std::cin, user_symbol);
 
 
     /*  if(something_to_detect_enter){
@@ -217,12 +217,19 @@ int main() {
           }
         }
     */
+    if(user_symbol.empty()){
+      for(int x = 0;x < stocks.size();++x){
+          update_stock_price(stocks[x]);
+      }
+      system("cls");
+      continue;
+    }
     if(lower(user_symbol) == "exit"){
       for(int i = 0; i < stocks.size();++i){
         writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
       }
       break;
-    }else if(!user_symbol.empty() && isInteger(user_symbol)){
+    }else if(isInteger(user_symbol)){
       //implement somthing to detect non digit input
       for(int i = 0; i < std::stoi(user_symbol);++i){
         for(int x = 0;x < stocks.size();++x){
@@ -240,7 +247,7 @@ int main() {
                 std::cin >> purchaseAmount;
                 if(isNumber(purchaseAmount)){
                   player.current_balance -= std::stof(purchaseAmount);
-
+                  player.owned_stocks.push_back(user_symbol);
                   break;
                   }
                 else{throw std::invalid_argument( "That is not a number try again." );}
