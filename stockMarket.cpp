@@ -8,7 +8,6 @@
 #include <vector>
 #include <stdlib.h> //clear screen
 #include <stdexcept> //exceptions
-
 class w0r1d_d43m0n {
   private:
   int bitBurnerVol = 2;
@@ -37,7 +36,6 @@ class Player {
   public:
   const int initial_balance = rng(5000,1000000);
   float current_balance = initial_balance;
-  std::vector<Stock> owned_stocks;
 };
 
 void update_stock_price(Stock &stock){
@@ -101,7 +99,25 @@ void display_stocks_info(const std::vector<Stock> &stocks, const int SPACES_AFTE
     std::cout << spaces << "Order: " << stocks[i].SYMBOL << '\n'; //display order
   }
 }
-
+void log_stock_info(const std::vector<Stock> stocks){
+  for(int i = 0; i < stocks.size();++i){
+    writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
+  }
+}
+void log_player_data(const Player player){
+  writeToFile("player_data.txt", std::to_string(player.current_balance));
+}
+void user_help(){
+  std::cout << "'help' commands";
+  std::cout << "Enter(key) - Skip 1 interation" << '\n';
+  std::cout << "INT(number)- Number of iterations to skip, note: depending on proccessing power you may not be able to run all of these iterations in a non infinite time." << '\n';
+  std::cout << "Order name - View a stock in more detail" << '\n';
+  std::cout << "Show       - View portfolio." << '\n';
+  std::cout << "Exit       - Exit application and log progress" << '\n';
+  std::cout << "Save       - Saves current game" << '\n';
+  //std::cout << "" << '\n';
+  print("PLEASE NOTE: Not all of these are functional or even factual so please be patient", 10);
+}
 int main() {
   Player player;
   std::vector<Stock> stocks;
@@ -218,7 +234,6 @@ int main() {
   for(int i = 0;i < stocks.size();++i){
     get_logged_stock_prices(stocks[i]);
   }
-  
   while(true){
     std::cout << "StockMarket" << '\n';
     std::cout << "type 'exit' to exit." << '\n';
@@ -226,16 +241,24 @@ int main() {
     display_stocks_info(stocks);
 
     std::string user_symbol;
-    std::cout << "Would you like to purchase any stocks if so input the symbol else enter num of iterations to skip: ";
+    std::cout << "What would you like to do?\n";
+    std::cout << "type 'help' for more info about commands" << '\n';
     getline(std::cin, user_symbol);
-
-
+    if(lower(user_symbol) == "help"){
+      user_help();
+      std::cin >> user_symbol;
+    }
     /*  if(something_to_detect_enter){
           for(int x = 0;x < stocks.size();++x){
             update_stock_price(stocks[x]);
           }
         }
     */
+    //Save game
+    if(lower(user_symbol) == "save"){
+      log_player_data(player);
+      log_stock_info(stocks);
+    }
     if(user_symbol.empty()){ //If user presses enter on no input
       for(int x = 0;x < stocks.size();++x){
           update_stock_price(stocks[x]);
@@ -244,11 +267,8 @@ int main() {
       continue;
     }
     if(lower(user_symbol) == "exit"){
-      for(int i = 0; i < stocks.size();++i){
-        writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
-      }
-      //player
-      writeToFile("player_data.txt", std::to_string(player.current_balance));
+      log_stock_info(stocks);
+      log_player_data(player);
       break;
     }else if(isInteger(user_symbol)){
       //implement somthing to detect non digit input
@@ -261,32 +281,59 @@ int main() {
       for(int i = 0;i < stocks.size();++i){
         if(stocks[i].SYMBOL == user_symbol){
           std::cout << "Stock Found!\n";
-          while(true){
-              std::string purchaseAmount;
-              std::cout << "How many would you like to purchase?: ";
-              std::cin >> purchaseAmount;
-              if(isNumber(purchaseAmount) && player.current_balance - std::stof(purchaseAmount) * stocks[i].current_price >= 0){
-                if(std::stof(purchaseAmount) <= 0.01){break;}
 
-                float amount = std::stof(purchaseAmount);
-                player.current_balance -= amount * stocks[i].current_price;
-                
-               /*
-                int stock_index = std::find(player.owned_stocks.begin, player.owned_stocks.end, stocks[i])
-                if(stock_index != player.owned_stocks.size()){
-
-                  //player.owned_stocks[stock_index].stockOwned+=amount;
-                }else{
-                  //player.owned_stocks.push_back(stocks[i]);
-                }
-                */
+          std::string purchaseOption;
+          std::cout << "What would you like to do sell or buy?: ";
+          std::cin >> purchaseOption;
+          if(lower(purchaseOption) == "sell"){
+            while(true){
+              std::string sellAmount;
+              std::cout << "How many would you like to Sell?: ";
+              std::cin >> sellAmount;
+              if(isNumber(sellAmount) && stocks[i].stockOwned != 0){
+                  float amount = std::stof(sellAmount);
+                  if(amount > stocks[i].stockOwned){amount = stocks[i].stockOwned;}
+                  player.current_balance += amount * stocks[i].current_price;
+                  stocks[i].stockOwned-=amount;
+                  break;
+                  }
+              else if(lower(sellAmount) == "max"){
+                float ownedStock = stocks[i].stockOwned; //prevent or create bugs idk.
+                stocks[i].stockOwned = 0;
+                player.current_balance += (ownedStock * stocks[i].current_price);
                 break;
-                }
+              }
+              else if(lower(sellAmount) == "exit")
+                {break;}
+              else if(stocks[i].stockOwned == 0)
+                {std::cout << "You dont own any of this stock.\n";}
+              else if(!isNumber(sellAmount))
+                {std::cout << "That is not a number/cannot compute try again.\n";}
+            }
+          }else if(lower(purchaseOption) == "buy"){
+            while(true){
+                std::string purchaseAmount;
+                std::cout << "How many would you like to purchase?: ";
+                std::cin >> purchaseAmount;
+                if(isNumber(purchaseAmount) && player.current_balance - std::stof(purchaseAmount) * stocks[i].current_price >= 0){
+                  float amount = std::stof(purchaseAmount);
+                  player.current_balance -= amount * stocks[i].current_price;
+                  stocks[i].stockOwned+=amount;
+                  break;
+                  }
                 else if(isNumber(purchaseAmount))
-                {std::cout << "You dont have the capitol to do that right now.\n";}
-                else if(lower(purchaseAmount) == "exit"){break;}
+                  {std::cout << "You dont have the capitol to do that right now.\n";}
+                else if(lower(purchaseAmount) == "max"){
+                  float amount = player.current_balance/stocks[i].current_price;
+                  player.current_balance -= amount*stocks[i].current_price;
+                  stocks[i].stockOwned += amount;
+                  break;
+                }
+                else if(lower(purchaseAmount) == "exit")
+                  {break;}
                 else if(!isNumber(purchaseAmount))
-                {std::cout << "That is not a number try again.\n";}
+                  {std::cout << "That is not a number/cannot compute try again.\n";}
+              }
             }
           }
         }
