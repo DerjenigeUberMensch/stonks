@@ -8,6 +8,7 @@
 #include <vector>
 #include <stdlib.h> //clear screen
 #include <stdexcept> //exceptions
+
 class w0r1d_d43m0n {
   private:
   int bitBurnerVol = 2;
@@ -30,12 +31,13 @@ public:
   const float MAX_PRICE = INITIAL_PRICE * rng(1, 10) * 10;
   float current_price = INITIAL_PRICE;
   //void log_old_price(){prices.push_back(current_price);}; //<<Feature Not implemented Yet>>
+  float stockOwned = 0;
 };
 class Player {
   public:
   const int initial_balance = rng(5000,1000000);
   float current_balance = initial_balance;
-  std::vector<std::string> owned_stocks;
+  std::vector<Stock> owned_stocks;
 };
 
 void update_stock_price(Stock &stock){
@@ -49,6 +51,20 @@ void update_stock_price(Stock &stock){
     stock.current_price += (stock.current_price * stock.volatility * rise_or_dip);
   }
   //stock.log_old_price(); //<<Feature Not implemented Yet>>
+}
+
+
+//Data collection
+void intiate_player(Player &player){
+  std::string file_name = "player_data.txt";
+  std::ifstream file(file_name);
+  if(!file.is_open()){
+    newFile(file_name);
+  }else if(!is_empty(file)){
+    std::vector<std::string> player_data = readFile(file_name);
+    player.current_balance = std::stof(player_data[0]);
+  }
+  file.close();
 }
 void get_logged_stock_prices(Stock &stock){
   std::string file_name = stock.SYMBOL + ".txt";
@@ -65,6 +81,7 @@ void get_logged_stock_prices(Stock &stock){
   }
   file.close();
 }
+
 std::string display_stock_price(const Stock &STOCK, int cout_spaces = 10){
   int stock_length = STOCK.stock_name.length();
   cout_spaces = cout_spaces - stock_length;
@@ -84,6 +101,7 @@ void display_stocks_info(const std::vector<Stock> &stocks, const int SPACES_AFTE
     std::cout << spaces << "Order: " << stocks[i].SYMBOL << '\n'; //display order
   }
 }
+
 int main() {
   Player player;
   std::vector<Stock> stocks;
@@ -195,7 +213,8 @@ int main() {
   Ethanol.stock_name = "Ethanol";
   stocks.push_back(Ethanol);
 
-
+  //initiate stuff
+  intiate_player(player);
   for(int i = 0;i < stocks.size();++i){
     get_logged_stock_prices(stocks[i]);
   }
@@ -217,7 +236,7 @@ int main() {
           }
         }
     */
-    if(user_symbol.empty()){
+    if(user_symbol.empty()){ //If user presses enter on no input
       for(int x = 0;x < stocks.size();++x){
           update_stock_price(stocks[x]);
       }
@@ -228,6 +247,8 @@ int main() {
       for(int i = 0; i < stocks.size();++i){
         writeToFile((stocks[i].SYMBOL + ".txt"), std::to_string(stocks[i].current_price), "overwrite");
       }
+      //player
+      writeToFile("player_data.txt", std::to_string(player.current_balance));
       break;
     }else if(isInteger(user_symbol)){
       //implement somthing to detect non digit input
@@ -241,19 +262,32 @@ int main() {
         if(stocks[i].SYMBOL == user_symbol){
           std::cout << "Stock Found!\n";
           while(true){
-              try{
-                std::string purchaseAmount;
-                std::cout << "How many would you like to purchase?: ";
-                std::cin >> purchaseAmount;
-                if(isNumber(purchaseAmount)){
-                  player.current_balance -= std::stof(purchaseAmount);
-                  player.owned_stocks.push_back(user_symbol);
-                  break;
-                  }
-                else{throw std::invalid_argument( "That is not a number try again." );}
-              }
-              catch(const std::invalid_argument& e){std::cout << "That is not a number try again.\n";}
-              }
+              std::string purchaseAmount;
+              std::cout << "How many would you like to purchase?: ";
+              std::cin >> purchaseAmount;
+              if(isNumber(purchaseAmount) && player.current_balance - std::stof(purchaseAmount) * stocks[i].current_price >= 0){
+                if(std::stof(purchaseAmount) <= 0.01){break;}
+
+                float amount = std::stof(purchaseAmount);
+                player.current_balance -= amount * stocks[i].current_price;
+                
+               /*
+                int stock_index = std::find(player.owned_stocks.begin, player.owned_stocks.end, stocks[i])
+                if(stock_index != player.owned_stocks.size()){
+
+                  //player.owned_stocks[stock_index].stockOwned+=amount;
+                }else{
+                  //player.owned_stocks.push_back(stocks[i]);
+                }
+                */
+                break;
+                }
+                else if(isNumber(purchaseAmount))
+                {std::cout << "You dont have the capitol to do that right now.\n";}
+                else if(lower(purchaseAmount) == "exit"){break;}
+                else if(!isNumber(purchaseAmount))
+                {std::cout << "That is not a number try again.\n";}
+            }
           }
         }
       }
