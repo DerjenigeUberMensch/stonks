@@ -6,12 +6,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-class w0r1d_d43m0n {
-  private:
-  int bitBurnerVol = 2;
-  std::string bitBurnerSym = "w0r1d_d43m0n";
-  std::string stockName = "BitBurner";
-};
 class Stock {
 public:
   //std::vector<float> prices; //<<Feature Not implemented Yet>>
