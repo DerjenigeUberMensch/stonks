@@ -1,8 +1,13 @@
 #include <random>
-template <typename Type>
-auto rng(Type min, Type max) {
+
+int rng(int min, int max) {
     std::random_device rd;
-    std::uniform_int_distribution<Type> dist(min,max);
+    std::uniform_int_distribution<int> dist(min,max);
+    return dist(rd);
+}
+float rng(float min, float max) {
+    std::random_device rd;
+    std::uniform_real_distribution<float> dist(min,max);
     return dist(rd);
 }
 inline bool isInteger(const std::string & s)
