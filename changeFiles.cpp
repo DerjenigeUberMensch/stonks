@@ -10,13 +10,17 @@ std::vector<std::string> readFile(std::string file){
         //std::cout <<  lineData << std::endl;
     }
     return readData;
-
 }
 void writeToFile(std::string file, std::string data , std::string mode = "append"){
     if(mode == "overwrite"){
         std::ofstream writeFile;
         writeFile.open(file, std::ios::trunc);
         writeFile << data << std::endl;
+        writeFile.close();
+    }else if(mode == "truncate"){
+        delete data;
+        std::ofstream writeFile;
+        writeFile.open(file, std::fstream::out | std::fstream::trunc);
         writeFile.close();
     }else{
         std::ofstream writeFile;
