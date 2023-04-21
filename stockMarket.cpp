@@ -6,8 +6,6 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include <stdlib.h> //clear screen
-#include <stdexcept> //exceptions
 class w0r1d_d43m0n {
   private:
   int bitBurnerVol = 2;
@@ -19,9 +17,10 @@ public:
   //std::vector<float> prices; //<<Feature Not implemented Yet>>
   std::string SYMBOL; //not const but essential a const value
   std::string stock_name;
-  float volatility;
+  const float volatility; // <- <<changing volatility not implemented yet>>
   const int INITIAL_PRICE = rng(1, 1500);
-  int stability = rng(-1, 2); // -1 unstable 0 regular_stock 1 semi-stable 2 stable
+  //int stability = rng(-1, 2); // <- <<not implemented yet>>
+  // -1 unstable 0 regular_stock 1 semi-stable 2 stable
   /* Stability: Stock will never drop below initial_price +- x (where x is some
   range) Note we generally dont want rangeless stocks as c++ likes to just drop
   the stocks to 0 and not climb back up
@@ -30,11 +29,11 @@ public:
   const float MAX_PRICE = INITIAL_PRICE * rng(1, 10) * 10;
   float current_price = INITIAL_PRICE;
   //void log_old_price(){prices.push_back(current_price);}; //<<Feature Not implemented Yet>>
-  float stockOwned = 0;
+  float stockOwned = 0; // I regret naming it this
 };
 class Player {
   public:
-  const int initial_balance = rng(5000,1000000);
+  const int initial_balance = rng(5000,1000000); //Number doesnt matter
   float current_balance = initial_balance;
 };
 
@@ -57,7 +56,7 @@ void intiate_player(Player &player){
   std::string file_name = "player_data.txt";
   std::ifstream file(file_name);
   if(!file.is_open()){
-    newFile(file_name);
+    newFile(file_name); //check if file exists if not create it
   }else if(!is_empty(file)){
     std::vector<std::string> player_data = readFile(file_name);
     player.current_balance = std::stof(player_data[0]);
@@ -75,7 +74,7 @@ void get_logged_stock_prices(Stock &stock){
       }
       stock.current_price = std::stof(current_price_temp[current_price_temp.size() - 1]);
     }
-    catch(...){/**/}; // we dont want to do anything is user tampers with the files cause it will just default to stock.current_price
+    catch(...){/**/}; // we dont want to do anything if user tampers with the files cause it will just default to stock.current_price
   }
   file.close();
 }
@@ -105,16 +104,49 @@ void log_stock_info(const std::vector<Stock> stocks){
   }
 }
 void log_player_data(const Player player){
-  writeToFile("player_data.txt", std::to_string(player.current_balance));
+  writeToFile("player_data.txt", std::to_string(player.current_balance), "overwrite");
+}
+void log_owned_stocks(const std::vector<Stock> &stocks){
+  writeToFile("owned_stocks",'a', "truncate"); //a doesnt mean anything hear just place_holder text
+  for(int i = 0; i < stocks.size();++i){
+    writeToFile("owned_stocks", (stocks[i].SYMBOL +'='+ std::to_string(stocks[i].stockOwned)));
+  }
+}
+void display_portfolio(const Player &player, const std::vector<Stock> stocks = {}){
+  std::vector<Stock> stocksOwned = {};
+  for(int i = 0 ;i < stocks.size();++i){
+    if(stocks[i].stockOwned > 0){
+      stocksOwned.push_back(stocks[i]);
+    }
+  }
+  clear_screen();
+  std::cout << "PORTFOLIO STATS\n";
+  std::cout << "Current Balance: " << std::to_string(player.current_balance) << '\n';
+
+  if(stocksOwned.size() > 0){
+    std::cout << "Current stock holding(s)\n";
+  }else{
+    std::cout << "You currently have no holdings";
+  }
+  for(int i = 0;i < stocksOwned.size();++i){
+    std::cout << stocksOwned[i].SYMBOL << " stocks: " << stocksOwned[i].stockOwned << '\n';
+  }
+  std::cout << '\n';
+  std::string input;
+  getline(std::cin, input);
+  if(input.empty()){
+    return;
+  }
+  return;
 }
 void user_help(){
   std::cout << "'help' commands";
-  std::cout << "Enter(key) - Skip 1 interation" << '\n';
-  std::cout << "INT(number)- Number of iterations to skip, note: depending on proccessing power you may not be able to run all of these iterations in a non infinite time." << '\n';
-  std::cout << "Order name - View a stock in more detail" << '\n';
-  std::cout << "Show       - View portfolio." << '\n';
-  std::cout << "Exit       - Exit application and log progress" << '\n';
-  std::cout << "Save       - Saves current game" << '\n';
+  std::cout << "Enter(key)  - Skip 1 interation" << '\n';
+  std::cout << "INT(number) - Number of iterations to skip, note: depending on proccessing power you may not be able to run all of these iterations in a non infinite time." << '\n';
+  std::cout << "Order name  - View a stock in more detail" << '\n';
+  std::cout << "View        - View portfolio." << '\n';
+  std::cout << "Exit        - Exit application and log progress" << '\n';
+  std::cout << "Save        - Saves current game" << '\n';
   //std::cout << "" << '\n';
   print("PLEASE NOTE: Not all of these are functional or even factual so please be patient", 10);
 }
@@ -234,6 +266,11 @@ int main() {
   for(int i = 0;i < stocks.size();++i){
     get_logged_stock_prices(stocks[i]);
   }
+  /*finish later something to get stock owned from previous isntance*/
+  std::vector<std::string> initiate_stocks_owned_player = readFile("owned_stocks");
+  for(int i = 0;i < initiate_stocks_owned_player.size();++i){
+
+  }
   while(true){
     std::cout << "StockMarket" << '\n';
     std::cout << "type 'exit' to exit." << '\n';
@@ -255,20 +292,30 @@ int main() {
         }
     */
     //Save game
-    if(lower(user_symbol) == "save"){
-      log_player_data(player);
-      log_stock_info(stocks);
-    }
     if(user_symbol.empty()){ //If user presses enter on no input
       for(int x = 0;x < stocks.size();++x){
           update_stock_price(stocks[x]);
       }
-      system("cls");
+      clear_screen();
+      continue;
+    }
+    if(lower(user_symbol) == "save"){
+      print("Saving...");
+      log_player_data(player);
+      log_stock_info(stocks);
+      log_owned_stocks(stocks);
+      std::this_thread::sleep_for(std::chrono::seconds(1)); // <- the illusion of doing stuff
+      print("Game Saved!");
+      std::this_thread::sleep_for(std::chrono::seconds(1)); // <- so user can read text
+      clear_screen();
       continue;
     }
     if(lower(user_symbol) == "exit"){
       log_stock_info(stocks);
       log_player_data(player);
+      log_owned_stocks(stocks);
+      print("exiting...");
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
       break;
     }else if(isInteger(user_symbol)){
       //implement somthing to detect non digit input
@@ -277,7 +324,10 @@ int main() {
           update_stock_price(stocks[x]);
         }
       }
-    }else if(!user_symbol.empty()){
+    }else if(lower(user_symbol) == "view"){
+      display_portfolio(player, stocks);
+    }
+    else if(!user_symbol.empty()){
       for(int i = 0;i < stocks.size();++i){
         if(stocks[i].SYMBOL == user_symbol){
           std::cout << "Stock Found!\n";
@@ -338,7 +388,7 @@ int main() {
           }
         }
       }
-      system("cls");
+      clear_screen();
     }
   
   return 0;
