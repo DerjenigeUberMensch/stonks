@@ -17,7 +17,7 @@ public:
   //std::vector<float> prices; //<<Feature Not implemented Yet>>
   std::string SYMBOL; //not const but essential a const value
   std::string stock_name;
-  const float volatility; // <- <<changing volatility not implemented yet>>
+  float volatility; // <- <<changing volatility not implemented yet>>
   const int INITIAL_PRICE = rng(1, 1500);
   //int stability = rng(-1, 2); // <- <<not implemented yet>>
   // -1 unstable 0 regular_stock 1 semi-stable 2 stable
@@ -107,7 +107,7 @@ void log_player_data(const Player player){
   writeToFile("player_data.txt", std::to_string(player.current_balance), "overwrite");
 }
 void log_owned_stocks(const std::vector<Stock> &stocks){
-  writeToFile("owned_stocks",'a', "truncate"); //a doesnt mean anything hear just place_holder text
+  writeToFile("owned_stocks","ab", "truncate"); //a doesnt mean anything hear just place_holder text
   for(int i = 0; i < stocks.size();++i){
     writeToFile("owned_stocks", (stocks[i].SYMBOL +'='+ std::to_string(stocks[i].stockOwned)));
   }
