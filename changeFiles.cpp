@@ -18,7 +18,6 @@ void writeToFile(std::string file, std::string data , std::string mode = "append
         writeFile << data << std::endl;
         writeFile.close();
     }else if(mode == "truncate"){
-        delete data;
         std::ofstream writeFile;
         writeFile.open(file, std::fstream::out | std::fstream::trunc);
         writeFile.close();
