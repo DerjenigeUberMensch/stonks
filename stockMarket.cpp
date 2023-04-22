@@ -100,8 +100,8 @@ void log_stock_info(const std::vector<Stock> stocks){
 void log_player_data(const Player player){
   writeToFile("player_data.txt", std::to_string(player.current_balance), "overwrite");
 }
-void log_owned_stocks(const std::vector<Stock> &stocks){
-  writeToFile("owned_stocks","ab", "truncate"); //a doesnt mean anything hear just place_holder text
+void log_owned_stocks(const std::vector<Stock> stocks){
+  writeToFile("owned_stocks","ab", "truncate"); //ab doesnt mean anything hear just place holder text
   for(int i = 0; i < stocks.size();++i){
     writeToFile("owned_stocks", (stocks[i].SYMBOL +'='+ std::to_string(stocks[i].stockOwned)));
   }
@@ -114,6 +114,7 @@ void display_portfolio(const Player &player, const std::vector<Stock> stocks = {
     }
   }
   clear_screen();
+  system("cls"); //windows terminal needs this for some reason 
   std::cout << "PORTFOLIO STATS\n";
   std::cout << "Current Balance: " << std::to_string(player.current_balance) << '\n';
 
@@ -260,11 +261,14 @@ int main() {
   for(int i = 0;i < stocks.size();++i){
     get_logged_stock_prices(stocks[i]);
   }
-  /*finish later something to get stock owned from previous isntance*/
+  /*Get logged stocks*/
   std::vector<std::string> initiate_stocks_owned_player = readFile("owned_stocks");
+  char indexChar = '=';
   for(int i = 0;i < initiate_stocks_owned_player.size();++i){
-
+    int index = initiate_stocks_owned_player[i].find(indexChar) + 1; //+1 so we dont get the '=' 
+    stocks[i].stockOwned = std::stof(initiate_stocks_owned_player[i].substr(index));
   }
+
   while(true){
     std::cout << "StockMarket" << '\n';
     std::cout << "type 'exit' to exit." << '\n';
@@ -291,6 +295,7 @@ int main() {
           update_stock_price(stocks[x]);
       }
       clear_screen();
+      system("cls"); //windows terminal needs this for some reason 
       continue;
     }
     if(lower(user_symbol) == "save"){
@@ -302,6 +307,7 @@ int main() {
       print("Game Saved!");
       std::this_thread::sleep_for(std::chrono::seconds(1)); // <- so user can read text
       clear_screen();
+      system("cls"); //windows terminal needs this for some reason 
       continue;
     }
     if(lower(user_symbol) == "exit"){
@@ -383,6 +389,7 @@ int main() {
         }
       }
       clear_screen();
+      system("cls"); //windows terminal needs this for some reason 
     }
   
   return 0;
