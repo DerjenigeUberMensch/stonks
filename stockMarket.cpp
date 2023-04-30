@@ -1,17 +1,15 @@
-#include "changeFiles.cpp"
-#include "math.cpp"
-#include "stringManipulation.cpp"
 #include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
 #include <vector>
 #include <fstream>
+#include <random>
+#include <algorithm>
 
+#include "misc.cpp"
 #include "STOCKS.cpp"
 #include "PLAYER.cpp"
-
-
 
 
 std::string display_stock_price(Stock &STOCK, int cout_spaces = 10){
@@ -143,11 +141,13 @@ void sell_stock(Player &player,Stock &stockPick){
     }
 }
 
-void save_game(Player player, Stock stock){
+void save_game(Player player, std::vector<Stock> stocks){
 	print("Saving...");
   player.log_player_data();
-  stock.log_stock_info();
-  stock.log_owned_stocks();
+  for(int i = 0; i < stocks.size();++i){
+    stocks[i].log_owned_stock();
+    stocks[i].log_current_price();
+  }
   std::this_thread::sleep_for(std::chrono::seconds(1)); // <- the illusion of doing stuff ISSUE CURRENT TREAD IS FUNCTION
   print("Game Saved!");
   std::this_thread::sleep_for(std::chrono::seconds(1)); // <- so user can read text
@@ -176,45 +176,14 @@ void manage_user_input(Player &player, std::vector<Stock> &stocks){
       }
     }
 	}else if(consoleInput == "save"){
-		save_game(player, stocks[0]); //ISSUE CURRENT TREAD IS FUNCTION
+		save_game(player, stocks); //ISSUE CURRENT TREAD IS FUNCTION
 	}else if(consoleInput == "exit"){
-		save_game(player, stocks[0]); //ISSUE CURRENT TREAD IS FUNCTION
+		save_game(player, stocks); //ISSUE CURRENT TREAD IS FUNCTION
 		std::terminate();		   //kill thread or something to exit
 	}else if(consoleInput == "help"){
 		user_help();
 	}
-	/*
-	switch(lower(consoleInput)){
-		case "buy":
-      Stock stockPick = get_stock_pick(stocks);
-			purchase_stock(player, stockPick);
-      break;
-		case "sell":
-      Stock stockPick = get_stock_pick(stocks);
-			sell_stock(player, stockPick);
-      break;
-		case "view": case "portfolio":
-			display_portfolio(player, stocks);
-      break;
-		case "save":
-			save_game(player, stocks); //ISSUE CURRENT TREAD IS FUNCTION
-      break;
-		case "exit":
-			save_game(player, stocks); //ISSUE CURRENT TREAD IS FUNCTION
-			exit(); 	//kill thread or something to exit
-      break;
-		case "help":
-			user_help();
-      break;
-	  
-  }
-  */
 }
-
-
-
-
-
 
 
 int main() {
@@ -240,24 +209,27 @@ int main() {
 
   //initiate stuff
   player.initiate_player();
-  std::vector<Stock> stocks = Ethanol.access_stocks();
-  Ethanol.get_logged_stock_prices(); //Stock here doesnt matter
+  for(int i = 0; i < Stock::stocks.size();++i){
+    Stock::stocks[i].set_logged_price();
+    std::cout << Stock::stocks[i].get_symbol() << '\n';
+  }
+  
   /*Get logged stocks*/
   std::vector<std::string> initiate_stocks_owned_player = readFile("owned_stocks");
   
   char indexChar = '=';
   for(int i = 0;i < initiate_stocks_owned_player.size();++i){
-    int index = initiate_stocks_owned_player[i].find(indexChar) + 1; //+1 so we dont get the '=' 
-    stocks[i].set_stock_owned(std::stof(initiate_stocks_owned_player[i].substr(index)));
+    int index = initiate_stocks_owned_player[i].find(indexChar) + 1; //+1 so we dont get the '='
+    Stock::stocks[i].set_stock_owned(std::stof(initiate_stocks_owned_player[i].substr(index)));
   }
   while(true){
     std::cout << "StockMarket" << '\n';
     std::cout << "type 'exit' to exit." << '\n';
     std::cout << "Current Balance: $" << player.get_balance() << "\n\n";
-    display_stocks_info(stocks);
-    manage_user_input(player, stocks);
-    for(int x = 0;x < stocks.size();++x){
-        stocks[x].update_stock_price();
+    display_stocks_info(Stock::stocks);
+    manage_user_input(player, Stock::stocks);
+    for(int x = 0;x < Stock::stocks.size();++x){
+        Stock::stocks[x].update_stock_price();
     }
     system("cls");
   }

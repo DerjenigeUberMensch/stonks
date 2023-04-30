@@ -1,3 +1,9 @@
+
+/*
+#include <fstream>
+include <string>
+*/
+
 class Player {
   private:
     const int initial_balance = rng(5000,1000000); //Number doesnt matter
@@ -9,7 +15,8 @@ class Player {
     void  initiate_player(const std::string file_name = "player_data.txt"){
         std::ifstream file(file_name);
         if(!file.is_open()){
-            newFile(file_name); //check if file exists if not create it
+            std::ofstream file(file_name);
+            file.close(); //check if file exists if not create it
         }else if(!is_empty(file)){
             std::vector<std::string> player_data = readFile(file_name);
             current_balance = std::stof(player_data[0]);
@@ -17,7 +24,11 @@ class Player {
         file.close();
     }
     void  log_player_data(){
-        writeToFile("player_data.txt", std::to_string(current_balance), "overwrite");
+        std::string file_name = "player_data.txt";
+        std::ofstream file;
+        file.open(file_name, std::ios::trunc);
+        file << std::to_string(current_balance);
+        file.close();
     }
 
 };
