@@ -1,2 +1,2 @@
 # stonks
-## Just run the .exe file if you dont want to modify/compile the code
+## The code is too much of a mess to debug and will not receive any updates
