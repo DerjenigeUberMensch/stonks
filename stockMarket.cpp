@@ -76,71 +76,6 @@ void user_help(){
   getline(std::cin, wait);
 }
 
-
-/*Do tasks functions*/
-Stock get_stock_pick(std::vector<Stock> &stocks){
-	std::string stockPick;
-	while(true){
-		std::cout << "What stock order: ";
-		getline(std::cin, stockPick);
-		if(!stockPick.empty()){
-			for(int i = 0; i < stocks.size();++i){
-				if(lower(stocks[i].get_symbol()) == lower(stockPick)){return stocks[i];}
-			}
-			std::cout << "No item found in system try again.\n";
-		}
-	}
-}
-void purchase_stock(Player &player, Stock &stockPick){
-	while(true){
-      std::string purchaseAmount;
-      std::cout << "How many would you like to purchase?: ";
-      getline(std::cin, purchaseAmount);
-      if(isNumber(purchaseAmount) && player.get_balance() - std::stof(purchaseAmount) * stockPick.get_current_price() >= 0){
-        float amount = std::stof(purchaseAmount);
-        player.set_balance(player.get_balance() - amount * stockPick.get_current_price());
-        stockPick.set_stock_owned(stockPick.get_stock_owned() + amount);
-        break;
-      }
-      else if(isNumber(purchaseAmount))
-          {std::cout << "You dont have the capitol to do that right now.\n";}
-      else if(lower(purchaseAmount) == "max"){
-          float amount = player.get_balance()/stockPick.get_current_price();
-          player.set_balance(player.get_balance() - amount*stockPick.get_current_price());
-          stockPick.set_stock_owned(stockPick.get_stock_owned() + amount);
-          break;
-          }
-      else if(lower(purchaseAmount) == "exit")
-          {system("cls");break;}
-      else if(!isNumber(purchaseAmount))
-          {std::cout << "That is not a number/cannot compute try again.\n";}
-    }
-}
-void sell_stock(Player &player,Stock &stockPick){
-	while(true){
-    std::string sellAmount;
-    std::cout << "How many would you like to Sell?: ";
-    std::cin >> sellAmount;
-    if(isNumber(sellAmount) && stockPick.get_stock_owned() != 0){
-      float amount = std::stof(sellAmount);
-      if(amount > stockPick.get_stock_owned()){amount = stockPick.get_stock_owned();}
-			player.set_balance(player.get_balance() + amount * stockPick.get_current_price());
-      stockPick.set_stock_owned(stockPick.get_stock_owned() - amount);
-      break;
-    }else if(lower(sellAmount) == "max"){
-      float ownedStock = stockPick.get_stock_owned(); //prevent or create bugs idk.
-      stockPick.set_stock_owned(0);
-      player.set_balance(player.get_balance() + (ownedStock * stockPick.get_current_price()));
-      break;
-		 }else if(lower(sellAmount) == "exit")
-        {system("cls");break;}
-    else if(stockPick.get_stock_owned() == 0)
-        {std::cout << "You dont own any of this stock.\n";}
-    else if(!isNumber(sellAmount));
-        {std::cout << "That is not a number/cannot compute try again.\n";}
-    }
-}
-
 void save_game(Player player, std::vector<Stock> stocks){
 	print("Saving...");
   player.log_player_data();
@@ -153,23 +88,95 @@ void save_game(Player player, std::vector<Stock> stocks){
   std::this_thread::sleep_for(std::chrono::seconds(1)); // <- so user can read text
   system("cls");
 }
+
+/*Do tasks functions*/
+float purchase_stock(Player &player, Stock &stockPick){
+	while(true){
+      std::string purchaseAmount;
+      std::cout << "How many would you like to purchase?: ";
+      getline(std::cin, purchaseAmount);
+      if(isNumber(purchaseAmount) && player.get_balance() - std::stof(purchaseAmount) * stockPick.get_current_price() >= 0){
+        float amount = std::stof(purchaseAmount);
+        player.set_balance(player.get_balance() - amount * stockPick.get_current_price());
+        return stockPick.get_stock_owned() + amount;
+      }
+      else if(isNumber(purchaseAmount))
+          {std::cout << "You dont have the capitol to do that right now.\n";}
+      else if(lower(purchaseAmount) == "max"){
+          float amount = player.get_balance()/stockPick.get_current_price();
+          player.set_balance(player.get_balance() - amount*stockPick.get_current_price());
+          stockPick.set_stock_owned(stockPick.get_stock_owned() + amount);
+          break;
+          }
+      else if(lower(purchaseAmount) == "exit")
+          {system("cls");break;}
+      else
+          {std::cout << "That is not a number/cannot compute try again.\n";}
+    }
+}
+float sell_stock(Player &player,Stock &stockPick){
+	while(true)
+  {
+    std::string sellAmount;
+    std::cout << "How many would you like to Sell?: ";
+    std::cin >> sellAmount;
+    if(isNumber(sellAmount) && stockPick.get_stock_owned() != 0){
+      float amount = std::stof(sellAmount);
+      if(amount > stockPick.get_stock_owned()){amount = stockPick.get_stock_owned();}
+			player.set_balance(player.get_balance() + amount * stockPick.get_current_price());
+      return stockPick.get_stock_owned() - amount;
+    }else if(lower(sellAmount) == "max"){
+      float ownedStock = stockPick.get_stock_owned(); //prevent or create bugs idk.
+      stockPick.set_stock_owned(0);
+      player.set_balance(player.get_balance() + (ownedStock * stockPick.get_current_price()));
+      break;
+		 }else if(lower(sellAmount) == "exit")
+        {system("cls");break;}
+    else if(stockPick.get_stock_owned() == 0)
+        {std::cout << "You dont own any of this stock.\n";}
+    else
+        {std::cout << "That is not a number/cannot compute try again.\n";}
+  }
+}
+
 //Decided what to do with input (once of the functions above)
+int get_stock_pick_postion(std::vector<Stock> &stocks){
+	std::string stockPick;
+	while(true){
+		std::cout << "What stock order: ";
+		getline(std::cin, stockPick);
+		if(!stockPick.empty()){
+			for(int i = 0; i < stocks.size();++i){
+				if(lower(stocks[i].get_symbol()) == lower(stockPick)){return i;}
+			}
+			std::cout << "No item found in system try again.\n";
+		}
+	}
+}
 void manage_user_input(Player &player, std::vector<Stock> &stocks){
 	std::cout << "What would you like to do?: ";
 	std::string consoleInput;
 	getline(std::cin, consoleInput);
 	if(consoleInput.empty()){return;} //if user presses enter or something we just skip to next iterations
 	consoleInput = lower(consoleInput);
+
+
 	if(consoleInput == "buy"){
-		Stock stockPick = get_stock_pick(stocks);
-		purchase_stock(player, stockPick);
+    //Simplified version
+		//Stock stockPick = stocks[get_stock_pick_postion(stocks)];
+		//stockPick.set_stock_owned(purchase_stock(player, stockPick));
+    int stockPosition = get_stock_pick_postion(stocks);
+    stocks[stockPosition].set_stock_owned(purchase_stock(player, stocks[stockPosition]));
 	}else if(consoleInput == "sell"){
-		Stock stockPick = get_stock_pick(stocks);
-		sell_stock(player, stockPick);
+    //Simplified version
+		//Stock stockPick = stocks[get_stock_pick_postion(stocks)];
+		//stockPick.set_stock_owned(sell_stock(player, stockPick));
+    int stockPosition = get_stock_pick_postion(stocks);
+    stocks[stockPosition].set_stock_owned(sell_stock(player, stocks[stockPosition]));
 	}else if(consoleInput == "view" || consoleInput == "portfolio"){
 		display_portfolio(player, stocks);
   }else if(isInteger(consoleInput)){
-    float iterations =  std::stoi(consoleInput);
+    float iterations = std::stoi(consoleInput);
     for(int i = 0; i < iterations;++i){
       for(int x = 0;x < stocks.size();++x){
         stocks[x].update_stock_price();
@@ -184,7 +191,6 @@ void manage_user_input(Player &player, std::vector<Stock> &stocks){
 		user_help();
 	}
 }
-
 
 int main() {
   Player player;
@@ -204,7 +210,7 @@ int main() {
   Stock Oil("Oil", "OIL",                 .10);
   Stock Gold("Gold", "GOLD",              .15);
   Stock Uranium("Uranium", "URM",         .17);
-  Stock Nat_gas("Natural Gas", "GAS",     .15); // Natural Gas
+  Stock Nat_gas("Natural Gas", "GAS",     .15);
   Stock Ethanol("Ethanol", "ETHN",        .20);
 
   //initiate stuff
@@ -228,6 +234,7 @@ int main() {
     std::cout << "Current Balance: $" << player.get_balance() << "\n\n";
     display_stocks_info(Stock::stocks);
     manage_user_input(player, Stock::stocks);
+
     for(int x = 0;x < Stock::stocks.size();++x){
         Stock::stocks[x].update_stock_price();
     }
