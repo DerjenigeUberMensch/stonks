@@ -13,13 +13,13 @@ bool is_empty(std::ifstream& pFile){
 class Stock {
     private:
         //int stability = rng(-1, 2); // <- <<not implemented yet>>
-        // -1 unstable 0 regular_stock 1 semi-stable 2 stable
+        // -1 unstable 1 regular_stock 2 semi-stable 3 stable
         /* Stability: Stock will never drop below initial_price +- x (where x is some
         range) Note we generally dont want rangeless stocks as c++ likes to just drop
         the stocks to 0 and not climb back up
         */
-        const int INITIAL_PRICE = rng(1, 1500);
-        const float MIN_PRICE = (INITIAL_PRICE * rng(1, 10) * .01) + rng(1, 3); //second rng is so we dont get small nums
+        const int   INITIAL_PRICE = rng(1, 1500);
+        const float MIN_PRICE = (INITIAL_PRICE * rng(1, 10) * .01) + .01;
         float MAX_PRICE = INITIAL_PRICE * rng(1, 10) * 10;
         float current_price;
         float volatility;
@@ -42,19 +42,14 @@ class Stock {
         float get_volatility()      {return volatility;}
         float get_current_price()   {return current_price;}
         float get_stock_owned()     {return stockAmountOwned;}
+        float get_min_price()       {return MIN_PRICE;}
         void  set_current_price(float price)     {current_price = price;}
         void  set_stock_owned(float stockAmount) {stockAmountOwned = stockAmount;}
         std::vector<Stock> access_stocks(){return stocks;}
         void update_stock_price(){
-            //generate new stock price
             int rise_or_dip = rng(-1, 1);
-            if(current_price < MIN_PRICE){
-                current_price += ((current_price * volatility * rise_or_dip) +(current_price * volatility * .25));
-            }else if(current_price >= MAX_PRICE){
-                current_price = current_price - (current_price * volatility * rise_or_dip *rise_or_dip)+ (current_price * volatility * .1);
-            }else{
-                current_price += (current_price * volatility * rise_or_dip);
-            }
+            current_price += (current_price * volatility * rise_or_dip);
+            current_price = std::clamp(current_price, MIN_PRICE, MAX_PRICE);
             //log_old_price(); //<<Feature Not implemented Yet>>
         }
         void log_current_price(){

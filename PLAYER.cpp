@@ -11,8 +11,8 @@ class Player {
   public:
     float get_initial_balance(){return initial_balance;}
     float get_balance()        {return current_balance;}
-    void  set_balance(float newBalance){current_balance = newBalance;}
-    void  initiate_player(const std::string file_name = "player_data.txt"){
+    void set_balance(float newBalance){current_balance = newBalance;}
+    void initiate_player(const std::string file_name = "player_data.txt"){
         std::ifstream file(file_name);
         if(!file.is_open()){
             std::ofstream file(file_name);
@@ -23,7 +23,7 @@ class Player {
         }
         file.close();
     }
-    void  log_player_data(){
+    void log_player_data(){
         std::string file_name = "player_data.txt";
         std::ofstream file;
         file.open(file_name, std::ios::trunc);

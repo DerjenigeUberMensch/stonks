@@ -6,6 +6,8 @@
 #include <fstream>
 #include <random>
 #include <algorithm>
+#include <cstdlib> // std::exit()
+#include <ctime>
 
 #include "misc.cpp"
 #include "STOCKS.cpp"
@@ -65,7 +67,7 @@ void display_portfolio(Player &player, std::vector<Stock> stocks = {}){
 void user_help(){
   std::cout << "'help' commands";
   std::cout << "Enter(key)  - Skip 1 interation" << '\n';
-  std::cout << "INT(number) - Number of iterations to skip, note: depending on proccessing power you may not be able to run all of these iterations in a non infinite time." << '\n';
+  std::cout << "number      - Number of iterations to skip, note: depending on proccessing power you may not be able to run all of these iterations in a non infinite time." << '\n';
   std::cout << "Order name  - View a stock in more detail" << '\n';
   std::cout << "View        - View portfolio." << '\n';
   std::cout << "Exit        - Exit application and log progress" << '\n';
@@ -105,14 +107,14 @@ float purchase_stock(Player &player, Stock &stockPick){
       else if(lower(purchaseAmount) == "max"){
           float amount = player.get_balance()/stockPick.get_current_price();
           player.set_balance(player.get_balance() - amount*stockPick.get_current_price());
-          stockPick.set_stock_owned(stockPick.get_stock_owned() + amount);
-          break;
+          return stockPick.get_stock_owned() + amount;
           }
       else if(lower(purchaseAmount) == "exit")
           {system("cls");break;}
       else
           {std::cout << "That is not a number/cannot compute try again.\n";}
     }
+    return stockPick.get_stock_owned(); //failsafe
 }
 float sell_stock(Player &player,Stock &stockPick){
 	while(true)
@@ -122,21 +124,22 @@ float sell_stock(Player &player,Stock &stockPick){
     std::cin >> sellAmount;
     if(isNumber(sellAmount) && stockPick.get_stock_owned() != 0){
       float amount = std::stof(sellAmount);
-      if(amount > stockPick.get_stock_owned()){amount = stockPick.get_stock_owned();}
+      if(amount > stockPick.get_stock_owned())
+        {amount = stockPick.get_stock_owned();}
 			player.set_balance(player.get_balance() + amount * stockPick.get_current_price());
       return stockPick.get_stock_owned() - amount;
     }else if(lower(sellAmount) == "max"){
       float ownedStock = stockPick.get_stock_owned(); //prevent or create bugs idk.
-      stockPick.set_stock_owned(0);
       player.set_balance(player.get_balance() + (ownedStock * stockPick.get_current_price()));
-      break;
+      return 0;
 		 }else if(lower(sellAmount) == "exit")
-        {system("cls");break;}
+        {system("cls"); break;}
     else if(stockPick.get_stock_owned() == 0)
         {std::cout << "You dont own any of this stock.\n";}
     else
         {std::cout << "That is not a number/cannot compute try again.\n";}
   }
+  return stockPick.get_stock_owned(); //failsafe
 }
 
 //Decided what to do with input (once of the functions above)
@@ -160,17 +163,11 @@ void manage_user_input(Player &player, std::vector<Stock> &stocks){
 	if(consoleInput.empty()){return;} //if user presses enter or something we just skip to next iterations
 	consoleInput = lower(consoleInput);
 
-
-	if(consoleInput == "buy"){
-    //Simplified version
-		//Stock stockPick = stocks[get_stock_pick_postion(stocks)];
-		//stockPick.set_stock_owned(purchase_stock(player, stockPick));
+	if(consoleInput == "buy"){;
     int stockPosition = get_stock_pick_postion(stocks);
     stocks[stockPosition].set_stock_owned(purchase_stock(player, stocks[stockPosition]));
 	}else if(consoleInput == "sell"){
-    //Simplified version
-		//Stock stockPick = stocks[get_stock_pick_postion(stocks)];
-		//stockPick.set_stock_owned(sell_stock(player, stockPick));
+
     int stockPosition = get_stock_pick_postion(stocks);
     stocks[stockPosition].set_stock_owned(sell_stock(player, stocks[stockPosition]));
 	}else if(consoleInput == "view" || consoleInput == "portfolio"){
@@ -186,12 +183,11 @@ void manage_user_input(Player &player, std::vector<Stock> &stocks){
 		save_game(player, stocks); //ISSUE CURRENT TREAD IS FUNCTION
 	}else if(consoleInput == "exit"){
 		save_game(player, stocks); //ISSUE CURRENT TREAD IS FUNCTION
-		std::terminate();		   //kill thread or something to exit
+		std::exit(0);		   //kill thread or something to exit
 	}else if(consoleInput == "help"){
 		user_help();
 	}
 }
-
 int main() {
   Player player;
   Stock NVIDIA("NVIDIA","NVDA",           .07);
